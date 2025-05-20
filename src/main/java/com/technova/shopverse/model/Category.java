@@ -1,23 +1,34 @@
 package com.technova.shopverse.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-@Entity //Le indica a JPA que esta clase representa una entidad persistente, es decir, una tabla en la base de datos.
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
 public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "El nombre no puede estar vacio")
     private String name;
+
+    @Size(min = 10, message = "La descripcion debe tener al menos 10 caracteres")
     private String description;
+
+    @OneToMany(mappedBy = "category")
+    @JsonManagedReference
+    private List<Product> products = new ArrayList<>();
 
     public Category() {
     }
 
-    public Category(Long id, String name, String description) {
+    public Category(String name, String description) {
         this.name = name;
         this.description = description;
     }
@@ -40,5 +51,13 @@ public class Category {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public List<Product> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<Product> products) {
+        this.products = products;
     }
 }

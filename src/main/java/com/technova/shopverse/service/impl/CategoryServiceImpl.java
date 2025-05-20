@@ -1,5 +1,6 @@
 package com.technova.shopverse.service.impl;
 
+import com.technova.shopverse.dto.CategoryDTO;
 import com.technova.shopverse.model.Category;
 import com.technova.shopverse.repository.CategoryRepository;
 import com.technova.shopverse.service.CategoryService;
@@ -8,6 +9,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import com.technova.shopverse.model.Product;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -15,44 +19,70 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public List<Category> getAllCategories() { return categoryRepository.findAll(); }
-
-    public Optional<Category> getCategoryById(Long id) { return categoryRepository.findById(id); }
-
-    public Category createCategory(Category category) {
-        validateCategory(category);
-        return categoryRepository.save(category);
+    public List<CategoryDTO> getAllCategories() {
+        return categoryRepository.findAll().stream()
+                .map(this::toDTO)
+                .toList();
     }
 
-    public Category updateCategory(Long id, Category updated) {
-        Optional<Category> optionalCategory = categoryRepository.findById(id);
-        if (optionalCategory.isEmpty()) {
-            throw new IllegalArgumentException("La Categoria con ID " + id + " no existe.");
-        }
-
-        validateCategory(updated);
-
-        Category category = optionalCategory.get();
-        category.setName(updated.getName());
-        category.setDescription(updated.getDescription());
-
-        return categoryRepository.save(category);
+    public Optional<CategoryDTO> getCategoryById(Long id) {
+        return categoryRepository.findById(id)
+                .map(this::toDTO);
     }
 
-    public void deleteCategory(Long id) {
-        if (!categoryRepository.existsById(id)) {
-            throw new IllegalArgumentException();
+    public CategoryDTO createCategory(CategoryDTO categoryDto) {
+        Category category = new Category();
+        category.setName(categoryDto.getName());
+        category.setDescription(categoryDto.getDescription());
+
+        Category saved = categoryRepository.save(category);
+        return new CategoryDTO(saved);
+    }
+
+    public CategoryDTO updateCategory(Long id, CategoryDTO updatedDto) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("La Categoria con ID " + id + " no existe."));
+
+        category.setName(updatedDto.getName());
+        category.setDescription(updatedDto.getDescription());
+
+        Category updated = categoryRepository.save(category);
+        return new CategoryDTO(updated);
+    }
+
+    public CategoryDTO deleteCategory(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada"));
+
+        if (!category.getProducts().isEmpty()) {
+            throw new IllegalStateException("No se puede eliminar una categoría con productos asociados.");
         }
+
+        CategoryDTO categoryDto = new CategoryDTO(category);
+
         categoryRepository.deleteById(id);
+
+        return categoryDto;
     }
 
-    private void validateCategory(Category category) {
-        if (category.getName() == null || category.getName().isBlank()) {
-            throw new IllegalArgumentException("El nombre de la categoria no puede estar vacio.");
-        }
-        if (category.getDescription() == null || category.getDescription().length() < 10) {
-            throw new IllegalArgumentException("La descripcion debe tener al menos 10 caracteres.");
-        }
+    public CategoryDTO getCategoryDTOById(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada"));
+
+        List<String> productNames = category.getProducts().stream()
+                .map(product -> product.getName())
+                .toList();
+
+        return new CategoryDTO(category);
+    }
+
+    private CategoryDTO toDTO(Category category) {
+        List<String> productNames = category.getProducts()
+                .stream()
+                .map(Product::getName)
+                .collect(Collectors.toList());
+
+        return new CategoryDTO(category);
     }
 
 }

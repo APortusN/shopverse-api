@@ -1,6 +1,9 @@
 package com.technova.shopverse.service.impl;
 
+import com.technova.shopverse.dto.ProductDTO;
+import com.technova.shopverse.model.Category;
 import com.technova.shopverse.model.Product;
+import com.technova.shopverse.repository.CategoryRepository;
 import com.technova.shopverse.repository.ProductRepository;
 import com.technova.shopverse.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,49 +18,68 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    public List<ProductDTO> getAllProducts() {
+        return productRepository.findAll().stream()
+                .map(this::toDTO)
+                .toList();
+    }
+    public Optional<ProductDTO> getProductById(Long id) {
+        return productRepository.findById(id)
+                .map(this::toDTO);
     }
 
-    public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(id);
+    public ProductDTO createProduct(ProductDTO productDto) {
+        Category category = categoryRepository.findByName(productDto.getCategoryName())
+                .orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada: " + productDto.getCategoryName()));
+
+        Product product = new Product();
+        product.setName(productDto.getName());
+        product.setDescription(productDto.getDescription());
+        product.setPrice(productDto.getPrice());
+        product.setCategory(category);
+
+        Product saved = productRepository.save(product);
+        return new ProductDTO(saved);
     }
 
-    public Product createProduct(Product product) {
-        validateProduct(product);
-        return productRepository.save(product);
+    public ProductDTO updateProduct(Long id, ProductDTO updatedDto) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("El producto con ID " + id + " no existe."));
+
+        Category category = categoryRepository.findByName(updatedDto.getCategoryName())
+                .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada: " + updatedDto.getCategoryName()));
+
+        product.setName(updatedDto.getName());
+        product.setDescription(updatedDto.getDescription());
+        product.setPrice(updatedDto.getPrice());
+        product.setCategory(category);
+
+        Product updated = productRepository.save(product);
+        return new ProductDTO(updated);
     }
 
-    public Product updateProduct(Long id, Product updated) {
-        Optional<Product> optionalProduct = productRepository.findById(id);
-        if (optionalProduct.isEmpty()) {
-            throw new IllegalArgumentException("El producto con ID " + id + " no existe.");
-        }
+    public ProductDTO deleteProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
 
-        validateProduct(updated);
-
-        Product product = optionalProduct.get();
-        product.setName(updated.getName());
-        product.setDescription(updated.getDescription());
-        product.setPrice(updated.getPrice());
-
-        return productRepository.save(product);
-    }
-
-    public void deleteProduct(Long id) {
-        if (!productRepository.existsById(id)) {
-            throw new IllegalArgumentException();
-        }
+        ProductDTO productDto = new ProductDTO(product);
         productRepository.deleteById(id);
+
+        return productDto;
     }
 
-    private void validateProduct(Product product) {
-        if (product.getName() == null || product.getName().isBlank()) {
-            throw new IllegalArgumentException("El nombre del producto no puede estar vacio.");
-        }
-        if (product.getPrice() == null || product.getPrice() <= 0) {
-            throw new IllegalArgumentException("El precio debe ser mayor a 0.");
-        }
+    public List<ProductDTO> getByCategoryId(Long categoryId) {
+        return productRepository.findByCategoryId(categoryId).stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
+    public ProductDTO toDTO(Product product) {
+        String categoryName = product.getCategory() != null ? product.getCategory().getName() : null;
+        return new ProductDTO(product);
     }
 
 }

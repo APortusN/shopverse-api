@@ -1,14 +1,18 @@
 package com.technova.shopverse.service;
 
-import com.technova.shopverse.model.Product;
+import com.technova.shopverse.dto.ProductDTO;
 
 import java.util.List;
 import java.util.Optional;
 public interface ProductService {
-    List<Product> getAllProducts();
-    Optional<Product> getProductById(Long id);
-    Product createProduct(Product product);
-    Product updateProduct(Long id, Product product);
-    void deleteProduct(Long id);
+
+    List<ProductDTO> getAllProducts();
+    Optional<ProductDTO> getProductById(Long id);
+    ProductDTO createProduct(ProductDTO productDto);
+    ProductDTO updateProduct(Long id, ProductDTO updatedDto);
+    ProductDTO deleteProduct(Long id);
+    List<ProductDTO> getByCategoryId(Long categoryId);
+
+
 }
 
