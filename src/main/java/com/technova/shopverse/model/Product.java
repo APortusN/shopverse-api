@@ -1,6 +1,5 @@
 package com.technova.shopverse.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -24,7 +23,6 @@ public class Product {
     @NotNull(message = "La categoría es obligatoria")
     @ManyToOne
     @JoinColumn(name = "category_id")
-    @JsonBackReference
     private Category category;
 
     public Product() {
@@ -34,6 +32,9 @@ public class Product {
         this.name = name;
         this.description = description;
         this.price = price;
+    }
+
+    public Product(String name, String description, Double price, Category category) {
     }
 
     // Getters y Setters

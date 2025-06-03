@@ -1,12 +1,22 @@
 package com.technova.shopverse.dto;
 
 import com.technova.shopverse.model.Product;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class ProductDTO {
     private Long id;
+    @NotBlank(message = "El nombre del producto no puede estar vacio")
     private String name;
+    @NotBlank(message = "La descripción no puede estar vacia")
     private String description;
+
+    @NotNull(message = "El precio es obligatorio")
+    @Min(value = 1, message = "El precio debe ser mayor a 0")
     private Double price;
+
+    @NotNull(message = "La categoría es obligatoria")
     private String categoryName;
 
     public ProductDTO() {

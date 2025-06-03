@@ -9,9 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import com.technova.shopverse.model.Product;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -21,13 +19,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     public List<CategoryDTO> getAllCategories() {
         return categoryRepository.findAll().stream()
-                .map(this::toDTO)
+                .map(CategoryDTO::new)
                 .toList();
     }
 
     public Optional<CategoryDTO> getCategoryById(Long id) {
         return categoryRepository.findById(id)
-                .map(this::toDTO);
+                .map(CategoryDTO::new);
     }
 
     public CategoryDTO createCategory(CategoryDTO categoryDto) {
@@ -68,20 +66,6 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDTO getCategoryDTOById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Categoria no encontrada"));
-
-        List<String> productNames = category.getProducts().stream()
-                .map(product -> product.getName())
-                .toList();
-
-        return new CategoryDTO(category);
-    }
-
-    private CategoryDTO toDTO(Category category) {
-        List<String> productNames = category.getProducts()
-                .stream()
-                .map(Product::getName)
-                .collect(Collectors.toList());
-
         return new CategoryDTO(category);
     }
 

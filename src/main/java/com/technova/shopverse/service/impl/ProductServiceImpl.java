@@ -23,12 +23,12 @@ public class ProductServiceImpl implements ProductService {
 
     public List<ProductDTO> getAllProducts() {
         return productRepository.findAll().stream()
-                .map(this::toDTO)
+                .map(ProductDTO::new)
                 .toList();
     }
     public Optional<ProductDTO> getProductById(Long id) {
         return productRepository.findById(id)
-                .map(this::toDTO);
+                .map(ProductDTO::new);
     }
 
     public ProductDTO createProduct(ProductDTO productDto) {
@@ -73,13 +73,8 @@ public class ProductServiceImpl implements ProductService {
 
     public List<ProductDTO> getByCategoryId(Long categoryId) {
         return productRepository.findByCategoryId(categoryId).stream()
-                .map(this::toDTO)
+                .map(ProductDTO::new)
                 .toList();
-    }
-
-    public ProductDTO toDTO(Product product) {
-        String categoryName = product.getCategory() != null ? product.getCategory().getName() : null;
-        return new ProductDTO(product);
     }
 
 }
